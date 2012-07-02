@@ -115,5 +115,41 @@ var sources = [
             var card_name = $("title").text();
             return { name: card_name, description: location.href };
         }
+    },
+
+    // MLS
+    {
+      identify: function(){
+        return ($("a[href*='mlsli.com'] img[alt*='return to our homepage']").length > 0 );
+      },
+
+      parse: function() {
+        // Use address for the name of the card
+        var address = $('.detail-bold:first').text();
+        address = address.replace(/\n/gi,',').replace(/\s+/gi,' ');
+
+        // Image URL
+        var image = $('img#big').attr('src');
+        // Listing URL
+        var url = location.href;
+        // Other things to add
+        var values = {
+          Price: $('tr.bodytext-nopadding td:last span').text().replace(/[\s\n]+/gi,' ').split('$')[1];
+        };
+
+        // Create description
+        var desc = "";
+        desc = desc + "![img]("+ image + ")\n\n"
+        desc = desc + "[MLS]("+ url + ")\n\n"
+        desc = desc + "---\n"
+
+        $.each(values, function(key,value) {
+          desc = desc + "* **"+key+"**: "+value+"\n"
+        });
+
+        return { name: address, description: desc };
+      }
     }
+
+
 ];
