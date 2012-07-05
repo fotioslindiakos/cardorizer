@@ -124,32 +124,83 @@ var sources = [
       },
 
       parse: function() {
-        // Use address for the name of the card
-        var address = $('.detail-bold:first').text();
-        address = address.replace(/\n/gi,',').replace(/\s+/gi,' ');
+							 var make_link = function(args) {
+								     var str = "";
+								     var type = args.type;
+								     var opts = args.opts;
+								     switch (type) {
+									     case "image":
+										         str = "![img](" + opts[0] + ")";
+									         break;
+									     case "link":
+										         str = "[" + opts[0] + "](" + opts[1] + ")";
+									         break;
+									     }
+								     return str;
+							 };
 
-        // Image URL
-        var image = $('img#big').attr('src');
-        // Listing URL
-        var url = location.href;
-        // Other things to add
-        var values = {
-          Price: $('tr.bodytext-nopadding td:last span').text().replace(/[\s\n]+/gi,' ').split('$')[1];
-        };
-
-        // Create description
-        var desc = "";
-        desc = desc + "![img]("+ image + ")\n\n"
-        desc = desc + "[MLS]("+ url + ")\n\n"
-        desc = desc + "---\n"
-
-        $.each(values, function(key,value) {
-          desc = desc + "* **"+key+"**: "+value+"\n"
-        });
-
-        return { name: address, description: desc };
-      }
-    }
+							 var make_links = function(links) {
+								     var desc = "";
+								     $.each(links, function(type, opts) {
+										         desc = desc + make_link(opts) + "\n\n";
+										     });
+								     return desc;
+							 };
 
 
+							 /**
+								* Get values for card
+								*/
+							 // Use address for the name of the card
+							 var address = $('.detail-bold:first').text();
+							 address = address.replace(/\n/gi,',').replace(/\s+/gi,' ').replace(/^[\s,]+/gi,'');
+
+							 // Image URL
+							 var image = $('img#big').attr('src');
+							 // Listing URL
+							 var url = location.href;
+
+							 var encoded = encodeURI(address);
+							 var map_link = "https://maps.google.com/?q=" + encoded;
+							 var map_image = "http://maps.googleapis.com/maps/api/staticmap?zoom=13&size=480x360&sensor=false&markers=" + encoded;
+
+							 // Other things to add
+							 var values = {
+								     MLS: make_link({
+type: "link",
+        opts: ["Link", url]
+    }),
+								     Map: make_link({
+										         type: "link",
+										         opts: ["Link", map_link]
+										     }),
+								 Price: $('tr.bodytext-nopadding td:last span').text().replace(/[\s\n]+/gi,' ').split('$')[1]
+							 };
+
+							 /**
+								*
+								* Format card
+								*
+								*/
+							 var desc = "";
+
+							 $.each(values, function(key, value) {
+									     desc = desc + "* **" + key + "**: " + value + "\n";
+									 });
+							 desc = desc + "\n---\n";
+
+							 desc = desc + make_links({
+									     mls_image: {
+									         type: "image",
+									         opts: [image]
+									     },
+									     map_image: {
+									         type: "image",
+									         opts: [map_image]
+									     }
+									 });
+
+							 return { name: address, description: desc };
+						 }
+		}
 ];
